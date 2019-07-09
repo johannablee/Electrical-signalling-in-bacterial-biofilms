@@ -1,0 +1,124 @@
+
+//File:Potassium propogation through biofilm.gro
+//Name:Johanna Blee
+//Date:01/09/2018
+//Gro code in which potassium release is triggered either at outer or inner biofilm. Potassium release is then triggered at other cells
+// via opening of Yug0 and 'Stress' gene in cells when the potassium is over a threshold concentration is over threshold
+//Cells must be manually selected in gro window inorder to save out values for cells and potassium at cells to two csv files
+
+include gro
+set ( "dt", 0.1 ); // timestep of simulation
+set ( "population_max", 2000000 );
+t := 0;
+i := 0;
+nocell:=50;
+phi:= (2*pi)/nocell;
+
+//Cellsignals settings
+set ("signals", 1.0); //0.0: off, 1.0: on
+set ("signals_draw", 1.0);
+grid("continuous", "gro_original", 20,20,1);
+k1 := s_signal([kdiff := 0.4, kdeg := 0.07]);
+
+
+ 
+genes([	   name := "stress",
+           proteins := {"St"},
+           promoter := [function := "YES",
+           transcription_factors := {"st1","-st2", "-ref"}],
+           prot_act_times := [times := {0.0}, variabilities := {0.0}],
+           prot_deg_times := [times := {40.0}, variabilities := {0.0}]
+     ]);
+	 
+genes([	   name := "refactory",
+           proteins := {"ref"},
+           promoter := [function := "YES",
+           transcription_factors := {"ref1","-ref2"}],
+           prot_act_times := [times := {0.0}, variabilities := {0.0}],
+           prot_deg_times := [times := {23.0}, variabilities := {0.0}]
+     ]);	 
+
+	 
+plasmids_genes ([
+				  p2 := {"refactory"},
+				  p3:={"stress"}]);	
+				  
+
+
+
+
+action({"-St"},"s_get_QS",{tostring(k1),">","0.8","st1"}); //when potasium above threshold gene activated
+
+action({},"s_get_QS",{tostring(k1),">","0.9","st2"}); //when potassium above threshold transciption factor deactivated 
+
+action({"-St"},"s_get_QS",{tostring(k1),"<","1.1","ref1"}); 
+
+action({},"s_get_QS",{tostring(k1),"<","1","ref2"}); 
+
+action({"St"},"s_emit_signal",{tostring(k1),"0.3","area"});
+
+
+//route1 and route2 define the file locations to save out data and images to. fa and fb are filenames for csvs to save file to
+route1 := "C:\Users\mbcxwjb3\Dropbox (The University of Manchester)\GRO-LIA-master\GRO-LIA-master\my code\";
+route2 := "C:\Users\mbcxwjb3\Dropbox (The University of Manchester)\GRO-LIA-master\GRO-LIA-master\my images\internal\";
+fa:= fopen (route1 <> "allcells1.csv", "w" );
+fb:= fopen (route1 <> "allcells11.csv", "w" );
+
+
+//program p() is program for saving out data, must select cells for any cells that want data to be saved to csv file for, in our case all cells were selected.
+program p() :=
+{
+	
+	p := [ t := 0, s := 0 ];
+
+  true : {
+    p.t := p.t + dt,
+    p.s := p.s + dt
+  }
+
+	
+  p.s>=1 & selected:
+	{
+		dump_single(fa); 
+		fprint(fb,s_get_signal(k1), "\n");
+		
+		p.s:=0	
+	}
+};
+
+//in main program cells are created with higher density in inner tha outer biofilm at time t=190mins signal is triggered in this code at inner biofilm can also be changed to outer biofilm. 
+program main() :=
+{
+
+t1 := 0;
+t2 := 0;
+r:=0;
+n:=0;
+true:
+{
+t1 := t1+dt;
+t2 := t2+dt;
+
+
+};
+
+//snapshot ( route2 <> tostring(n) <> ".tif" ) used to save out timelapse images of simulation 
+t2 > 3 :
+{
+snapshot ( route2 <> tostring(n) <> ".tif" ),
+n := n + 1,
+t2 := 0
+}
+
+t1> 190 & t1<193:{
+s_set_signal(k1,3,0,0) 
+};
+
+t1>193:{
+t1:=0;}
+
+	c_ecolis(1500, 0, 0, 800,{"p3","p2"},program p());
+    c_ecolis(1000, 0, 0, 500, {"p3","p2"},program p());
+	c_ecolis(200, 0, 0, 200, {"p3","p2"},program p());
+	
+};
