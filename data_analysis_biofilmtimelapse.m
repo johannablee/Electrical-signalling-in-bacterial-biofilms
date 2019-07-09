@@ -1,10 +1,10 @@
 % Polar coordinate data analysis of biofilms by Johanna Blee
 %8/12/2017
-%This code takes a video containing a timelapse of a biofilm with a radially propogating
-%signal and converts the signal into polar coordinates and radial averages.
-%The moments of the radial average signal are found, and used to calculate mean, std, kurtosis and skewness.The average
-%radial signal is also fitted with gaussians.
-%requires wmean.m
+%This code takes a video containing a time lapse of a biofilm with a 
+%radially propagating signal and converts the signal into polar coordinates
+%and radial averages. The moments of the radial average signal are found, 
+%and used to calculate mean, std, kurtosis and skewness. 
+%The average radial signal is also fitted with Gaussians. (Requires wmean.m)
 
 
 %Create VideoReader
