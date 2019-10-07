@@ -11,6 +11,7 @@ set ( "dt", 0.1 ); // timestep of simulation
 set ( "population_max", 2000000 );
 t := 0;
 i := 0;
+set ( "ecoli_growth_rate", 0.0034);
 nocell:=50;
 phi:= (2*pi)/nocell;
 
